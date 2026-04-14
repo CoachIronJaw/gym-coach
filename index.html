@@ -1,1 +1,92 @@
-<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>To-Do List Application</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            background-color: #f4f4f4;\n            margin: 0;\n            padding: 20px;\n        }\n        #todo-form {\n            margin-bottom: 20px;\n        }\n        input[type='text'] {\n            padding: 10px;\n            width: 300px;\n            font-size: 16px;\n        }\n        button {\n            padding: 10px;\n            font-size: 16px;\n        }\n        ul {\n            list-style: none;\n            padding: 0;\n        }\n        li {\n            background: #fff;\n            margin: 5px 0;\n            padding: 10px;\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            border: 1px solid #ddd;\n            border-radius: 3px;\n        }\n        .remove {\n            cursor: pointer;\n            color: red;\n        }\n    </style>\n</head>\n<body>\n    <h1>My To-Do List</h1>\n    <div id="todo-form">\n        <input type="text" id="todo-input" placeholder="Add a new task...">\n        <button id="add-btn">Add</button>\n    </div>\n    <ul id="todo-list"></ul>\n\n    <script>\n        const todoInput = document.getElementById('todo-input');\n        const addBtn = document.getElementById('add-btn');\n        const todoList = document.getElementById('todo-list');\n\n        let todos = JSON.parse(localStorage.getItem('todos')) || [];\n\n        const renderTodos = () => {\n            todoList.innerHTML = '';\n            todos.forEach((todo, index) => {\n                const li = document.createElement('li');\n                li.textContent = todo;\n                const removeBtn = document.createElement('span');\n                removeBtn.textContent = 'Remove';\n                removeBtn.className = 'remove';\n                removeBtn.onclick = () => {\n                    todos.splice(index, 1);\n                    localStorage.setItem('todos', JSON.stringify(todos));\n                    renderTodos();\n                };\n                li.appendChild(removeBtn);\n                todoList.appendChild(li);\n            });\n        };\n\n        addBtn.onclick = () => {\n            const newTodo = todoInput.value.trim();\n            if (newTodo) {\n                todos.push(newTodo);\n                localStorage.setItem('todos', JSON.stringify(todos));\n                todoInput.value = '';\n                renderTodos();\n            }\n        };\n\n        renderTodos();\n    </script>\n</body>\n</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        #todo-form {
+            margin-bottom: 20px;
+        }
+        input[type='text'] {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #fff;
+            margin: 5px 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .remove {
+            cursor: pointer;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>My To-Do List</h1>
+    <div id="todo-form">
+        <input type="text" id="todo-input" placeholder="Add a new task...">
+        <button id="add-btn">Add</button>
+    </div>
+    <ul id="todo-list"></ul>
+
+    <script>
+        const todoInput = document.getElementById('todo-input');
+        const addBtn = document.getElementById('add-btn');
+        const todoList = document.getElementById('todo-list');
+
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        const renderTodos = () => {
+            todoList.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                li.textContent = todo;
+                const removeBtn = document.createElement('span');
+                removeBtn.textContent = 'Remove';
+                removeBtn.className = 'remove';
+                removeBtn.onclick = () => {
+                    todos.splice(index, 1);
+                    localStorage.setItem('todos', JSON.stringify(todos));
+                    renderTodos();
+                };
+                li.appendChild(removeBtn);
+                todoList.appendChild(li);
+            });
+        };
+
+        addBtn.onclick = () => {
+            const newTodo = todoInput.value.trim();
+            if (newTodo) {
+                todos.push(newTodo);
+                localStorage.setItem('todos', JSON.stringify(todos));
+                todoInput.value = '';
+                renderTodos();
+            }
+        };
+
+        renderTodos();
+    </script>
+</body>
+</html>
