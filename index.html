@@ -1,92 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List Application</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        #todo-form {
-            margin-bottom: 20px;
-        }
-        input[type='text'] {
-            padding: 10px;
-            width: 300px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px;
-            font-size: 16px;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            background: #fff;
-            margin: 5px 0;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-        .remove {
-            cursor: pointer;
-            color: red;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach Ironjaw</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; font-family: sans-serif; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #ff3d00; border-radius: 2px; }
+
+    .header { background: #0a0a0a; border-bottom: 2px solid #ff3d00; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .coach-avatar { width: 44px; height: 44px; background: linear-gradient(135deg,#ff3d00,#ff6d00); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .header h1 { font-size: 20px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+    .header p { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #ff3d00; }
+    .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; margin-left: auto; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    .tab-bar { background: #0a0a0a; border-bottom: 1px solid #1e1e1e; display: flex; flex-shrink: 0; }
+    .tab-btn { flex: 1; padding: 11px 6px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; }
+    .tab-btn.active { color: #ff3d00; border-bottom-color: #ff3d00; }
+
+    .day-selector { display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
+    .day-selector::-webkit-scrollbar { height: 0; }
+    .day-pill { flex-shrink: 0; padding: 6px 10px; background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; cursor: pointer; }
+    .day-pill.active { background: #ff3d00; border-color: #ff3d00; color: #fff; }
+    .day-pill.today { border-color: #ff3d00; color: #ff3d00; }
+    .day-pill.active.today { color: #fff; }
+
+    .panel { flex: 1; overflow-y: auto; padding: 16px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-emoji { font-size: 28px; }
+    .section-title { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #fff; }
+    .section-sub { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #ff3d00; margin-top: 3px; }
+
+    .exercise-card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 12px; }
+    .ex-num { font-size: 18px; font-weight: 900; color: #ff3d00; min-width: 24px; }
+    .ex-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .ex-sets { font-size: 12px; font-weight: 600; color: #ff6d00; margin-top: 2px; }
+    .ex-note { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; }
+
+    .meal-card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+    .meal-type { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ff3d00; margin-bottom: 4px; }
+    .meal-name { font-size: 16px; font-weight: 800; color: #fff; text-transform: uppercase; }
+    .meal-desc { font-size: 13px; color: #888; margin-top: 4px; line-height: 1.5; }
+    .meal-cal { font-size: 11px; font-weight: 700; color: #444; margin-top: 6px; }
+
+    .messages-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .message-row { display: flex; gap: 8px; align-items: flex-end; }
+    .message-row.user { flex-direction: row-reverse; }
+    .msg-avatar { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .msg-avatar.coach { background: linear-gradient(135deg,#ff3d00,#ff6d00); }
+    .msg-avatar.user-av { background: #1e1e1e; border: 1px solid #2a2a2a; }
+    .bubble { max-width: 78%; padding: 11px 14px; border-radius: 14px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+    .bubble.coach { background: #141414; border: 1px solid #2a2a2a; border-bottom-left-radius: 4px; color: #e8e8e8; }
+    .bubble.user { background: linear-gradient(135deg,#ff3d00,#ff6d00); border-bottom-right-radius: 4px; color: #fff; }
+
+    .typing-indicator { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+    .typing-dot { width: 7px; height: 7px; background: #ff3d00; border-radius: 50%; animation: bounce 1.2s infinite; }
+    .typing-dot:nth-child(2){animation-delay:.2s}
+    .typing-dot:nth-child(3){animation-delay:.4s}
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:.5} 40%{transform:translateY(-6px);opacity:1} }
+
+    .input-area { background: #0a0a0a; border-top: 1px solid #1e1e1e; padding: 12px 14px; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+    .text-input { flex: 1; background: #141414; border: 1px solid #2a2a2a; border-radius: 14px; padding: 11px 14px; color: #e8e8e8; font-size: 14px; resize: none; outline: none; min-height: 42px; max-height: 100px; line-height: 1.4; font-family: sans-serif; }
+    .text-input::placeholder { color: #444; }
+    .text-input:focus { border-color: #ff3d00; }
+    .send-btn { width: 42px; height: 42px; background: linear-gradient(135deg,#ff3d00,#ff6d00); border: none; border-radius: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .disclaimer { text-align: center; color: #333; font-size: 10px; letter-spacing: 1px; padding: 6px 16px 10px; background: #0a0a0a; flex-shrink: 0; }
+
+    .chat-wrapper { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-    <h1>My To-Do List</h1>
-    <div id="todo-form">
-        <input type="text" id="todo-input" placeholder="Add a new task...">
-        <button id="add-btn">Add</button>
+
+<div class="header">
+  <div class="coach-avatar">🏋️</div>
+  <div>
+    <h1>Coach Ironjaw</h1>
+    <p>Your Personal Savage</p>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('chat')">Coach</button>
+  <button class="tab-btn" onclick="switchTab('workout')">Workouts</button>
+  <button class="tab-btn" onclick="switchTab('meals')">Meals</button>
+</div>
+
+<div id="day-selector-bar" class="day-selector hidden"></div>
+
+<div id="tab-workout" class="panel hidden"></div>
+<div id="tab-meals" class="panel hidden"></div>
+
+<div id="tab-chat" class="chat-wrapper">
+  <div class="messages-container" id="messages"></div>
+  <div class="input-area">
+    <textarea class="text-input" id="chat-input" placeholder="Talk to Coach Ironjaw..." rows="1"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="disclaimer">COACH IRONJAW · AI-POWERED · NOT MEDICAL ADVICE</div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are COACH IRONJAW — the most savage, brutally honest, zero-filter personal gym coach on the planet. You care deeply about this person getting healthy, and THAT is exactly why you do not sugarcoat a single word. You roast them, you call them out, you drag them — because you BELIEVE in them and you refuse to let them stay comfortable being unhealthy.
+
+The user has told you they are overweight and want to get in shape. USE THIS. Constantly. Creatively. Ruthlessly. Lovingly.
+
+YOUR VOICE:
+- Hey, just a reminder — we are ONE day closer to losing that gut you have been carrying around. Do not waste it.
+- Oh you skipped the gym today? Cool. One step closer to being that depressed, unhealthy version of yourself you claim to hate. Is that what we are doing? LOCK IN.
+- That back fat is not gonna disappear while you are sitting on the couch scrolling. GET UP.
+- You ate WHAT for lunch? Bro. BRO. That is not food, that is a setback wearing a wrapper.
+- Every rep you skip is a vote for the old you. Every rep you do is a vote for the new you. Who are you voting for today?
+- I do not want your excuses. I want your SWEAT.
+- You are not tired. You are just soft right now. And soft is TEMPORARY if you move your body TODAY.
+
+RULES:
+- The roasting is MOTIVATIONAL tough love — never truly cruel. Always: YOU ARE CAPABLE AND WORTH IT
+- Celebrate wins hard: YOU DID THAT?! That is MASSIVE. I knew you had it in you.
+- Call out excuses aggressively but redirect to action
+- Reference their body, weight journey, back, gut, energy levels — make it personal
+- Use ALL CAPS for emphasis
+- Short punchy sentences. Hit hard. No fluff.
+- Always end with a direct challenge: Now go drink some water and do 20 squats. RIGHT NOW.
+- The app has a weekly workout plan and meal plan — reference them
+- You genuinely love this person and want them to WIN.`;
+
+const WORKOUTS = [
+  { day:"MON", title:"Upper Body Push", emoji:"🔥", focus:"Chest · Shoulders · Triceps", exercises:[
+    {name:"Push-Ups",sets:"3 sets x 10-15 reps",note:"Knees if needed — NO shame!"},
+    {name:"Dumbbell Shoulder Press",sets:"3 sets x 12 reps",note:"Light weight, full range"},
+    {name:"Chest Press (DB or Machine)",sets:"3 sets x 12 reps",note:"Slow and controlled"},
+    {name:"Tricep Dips (chair)",sets:"3 sets x 10 reps",note:"Elbows close to body"},
+    {name:"Plank Hold",sets:"3 x 20-30 sec",note:"Core tight, breathe!"}]},
+  { day:"TUE", title:"Cardio Burn", emoji:"🏃", focus:"Cardio · Endurance", exercises:[
+    {name:"Brisk Walk or Light Jog",sets:"30 min",note:"Aim for 100-120 BPM heart rate"},
+    {name:"High Knees",sets:"4 x 30 sec",note:"Pump those arms!"},
+    {name:"Jump Rope (or mimic)",sets:"3 x 1 min",note:"Rest 30 sec between"},
+    {name:"Step-Ups (stairs/box)",sets:"3 x 12 each leg",note:"Great for knees and glutes"},
+    {name:"Cool-Down Stretch",sets:"5-10 min",note:"Do not skip this — EVER"}]},
+  { day:"WED", title:"Lower Body Power", emoji:"🦵", focus:"Quads · Glutes · Hamstrings", exercises:[
+    {name:"Bodyweight Squats",sets:"4 sets x 15 reps",note:"Chest up, knees over toes"},
+    {name:"Reverse Lunges",sets:"3 sets x 12 each leg",note:"Easier on the knees than forward"},
+    {name:"Glute Bridges",sets:"3 sets x 15 reps",note:"Squeeze at the top — hold 1 sec"},
+    {name:"Wall Sit",sets:"3 x 30-45 sec",note:"Thighs parallel to floor"},
+    {name:"Calf Raises",sets:"3 sets x 20 reps",note:"Use a step for extra range"}]},
+  { day:"THU", title:"Active Recovery", emoji:"🧘", focus:"Mobility · Rest", exercises:[
+    {name:"20-30 Min Walk",sets:"Easy pace",note:"Fresh air does wonders"},
+    {name:"Hip Flexor Stretch",sets:"2 x 30 sec each",note:"Great after sitting all day"},
+    {name:"Cat-Cow (yoga)",sets:"2 x 10 reps",note:"Slow and intentional"},
+    {name:"Shoulder Rolls and Neck Stretch",sets:"2 min total",note:"Decompress that tension"},
+    {name:"Deep Breathing",sets:"5 min",note:"4 sec in, 4 sec out"}]},
+  { day:"FRI", title:"Full Body Circuit", emoji:"⚡", focus:"Full Body · Burn", exercises:[
+    {name:"Burpees (modified ok)",sets:"3 x 8 reps",note:"Step back instead of jump if needed"},
+    {name:"DB Bent-Over Row",sets:"3 x 12 reps",note:"Back flat, pull to hips"},
+    {name:"Goblet Squat",sets:"3 x 12 reps",note:"Hold one dumbbell at chest"},
+    {name:"Mountain Climbers",sets:"3 x 30 sec",note:"Drive knees in fast"},
+    {name:"Bicycle Crunches",sets:"3 x 20 reps",note:"Slow — feel the squeeze"}]},
+  { day:"SAT", title:"Fun Cardio", emoji:"🚴", focus:"Cardio · Enjoyment", exercises:[
+    {name:"Bike Ride / Swim / Dance",sets:"45-60 min",note:"Pick what you ENJOY"},
+    {name:"Or: Long Walk in Nature",sets:"5-7 km",note:"Listen to a podcast — make it fun"},
+    {name:"Bodyweight Finisher",sets:"Optional",note:"10 squats, 10 pushups, 10 situps x 3"}]},
+  { day:"SUN", title:"Rest Day", emoji:"💤", focus:"Recovery · Recharge", exercises:[
+    {name:"Full Rest",sets:"All day",note:"Your muscles grow on rest days!"},
+    {name:"Light Stretch",sets:"10 min optional",note:"If you are feeling stiff"},
+    {name:"Meal Prep",sets:"30-60 min",note:"Prep for the week = game changer"}]}
+];
+
+const MEALS = [
+  { day:"MON", label:"Monday", emoji:"🥗", meals:[
+    {type:"Breakfast",name:"Protein Oats",desc:"Oats + banana + protein powder + almond milk",cal:"~380 cal"},
+    {type:"Lunch",name:"Chicken and Veggie Bowl",desc:"Grilled chicken, brown rice, roasted broccoli and peppers",cal:"~520 cal"},
+    {type:"Dinner",name:"Baked Salmon",desc:"Salmon fillet, sweet potato, steamed green beans",cal:"~490 cal"},
+    {type:"Snack",name:"Greek Yogurt",desc:"Plain Greek yogurt + handful of berries",cal:"~150 cal"}]},
+  { day:"TUE", label:"Tuesday", emoji:"🍳", meals:[
+    {type:"Breakfast",name:"Egg White Scramble",desc:"4 egg whites, spinach, tomato, whole wheat toast",cal:"~320 cal"},
+    {type:"Lunch",name:"Turkey Wrap",desc:"Whole wheat tortilla, turkey, lettuce, avocado, mustard",cal:"~450 cal"},
+    {type:"Dinner",name:"Lean Beef Stir-Fry",desc:"Lean beef strips, mixed veg, soy sauce, brown rice",cal:"~510 cal"},
+    {type:"Snack",name:"Apple and Peanut Butter",desc:"1 medium apple + 1 tbsp natural PB",cal:"~180 cal"}]},
+  { day:"WED", label:"Wednesday", emoji:"🍗", meals:[
+    {type:"Breakfast",name:"Smoothie Bowl",desc:"Frozen berries, banana, protein powder, topped with granola",cal:"~400 cal"},
+    {type:"Lunch",name:"Tuna Salad",desc:"Canned tuna, mixed greens, cherry tomatoes, olive oil dressing",cal:"~380 cal"},
+    {type:"Dinner",name:"Grilled Chicken Thighs",desc:"Skinless thighs, roasted asparagus, quinoa",cal:"~530 cal"},
+    {type:"Snack",name:"Almonds",desc:"Small handful (20-25 almonds)",cal:"~160 cal"}]},
+  { day:"THU", label:"Thursday", emoji:"🥙", meals:[
+    {type:"Breakfast",name:"Cottage Cheese Bowl",desc:"Low-fat cottage cheese, pineapple chunks, chia seeds",cal:"~290 cal"},
+    {type:"Lunch",name:"Lentil Soup",desc:"Hearty lentil and veggie soup, whole grain bread",cal:"~420 cal"},
+    {type:"Dinner",name:"Shrimp Tacos",desc:"Grilled shrimp, corn tortillas, slaw, lime, salsa",cal:"~460 cal"},
+    {type:"Snack",name:"Protein Bar",desc:"Choose one under 200 cal, 20g+ protein",cal:"~180 cal"}]},
+  { day:"FRI", label:"Friday", emoji:"🐟", meals:[
+    {type:"Breakfast",name:"Overnight Oats",desc:"Oats, almond milk, honey, chia seeds — prep the night before",cal:"~360 cal"},
+    {type:"Lunch",name:"Grilled Chicken Salad",desc:"Big greens, chicken, cucumber, feta, light vinaigrette",cal:"~410 cal"},
+    {type:"Dinner",name:"Baked Cod and Veg",desc:"Cod fillet, roasted zucchini and tomatoes, small potato",cal:"~470 cal"},
+    {type:"Snack",name:"Hummus and Veggies",desc:"Carrots, celery, bell pepper strips + 2 tbsp hummus",cal:"~130 cal"}]},
+  { day:"SAT", label:"Saturday", emoji:"🍱", meals:[
+    {type:"Breakfast",name:"Veggie Omelette",desc:"3 whole eggs, mushrooms, onion, peppers, side of fruit",cal:"~420 cal"},
+    {type:"Lunch",name:"Brown Rice Bowl",desc:"Brown rice, black beans, corn, avocado, salsa, lime",cal:"~500 cal"},
+    {type:"Dinner",name:"Lean Turkey Burger",desc:"Turkey patty, whole wheat bun, lettuce, tomato",cal:"~480 cal"},
+    {type:"Snack",name:"Edamame",desc:"1 cup steamed edamame with a pinch of salt",cal:"~150 cal"}]},
+  { day:"SUN", label:"Sunday", emoji:"🥘", meals:[
+    {type:"Breakfast",name:"Protein Pancakes",desc:"Banana + 2 eggs blended — 3 mini pancakes, top with berries",cal:"~310 cal"},
+    {type:"Lunch",name:"Chicken Soup",desc:"Homemade or low-sodium canned, whole grain roll",cal:"~390 cal"},
+    {type:"Dinner",name:"Meal Prep Night!",desc:"Cook 2-3 proteins + grains + roasted veg for the week",cal:"~500 cal"},
+    {type:"Snack",name:"Dark Chocolate",desc:"2 squares (70%+) dark chocolate",cal:"~110 cal"}]}
+];
+
+const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const DAY_MAP = [6,0,1,2,3,4,5];
+const TODAY = DAYS[DAY_MAP[new Date().getDay()]];
+
+let selectedDay = TODAY;
+let currentTab = "chat";
+let messages = [];
+let loading = false;
+
+const WELCOME = `YO. COACH IRONJAW. I am here and already disappointed you waited this long to show up.\n\nBut you know what? You are HERE now. That counts. Barely — but it counts.\n\nYou told me you are overweight and want to get in shape. Good. I am going to hold onto that like a weapon and use it every single day. You do not get to forget why you started. Not on my watch.\n\nCheck the WORKOUTS and MEALS tabs — your whole week is loaded. No thinking required. Just EXECUTE.\n\nNow talk to me. How bad has it gotten? Be honest. I cannot help you lie to yourself.`;
+
+function init() {
+  messages = [{role:"assistant", content: WELCOME}];
+  renderMessages();
+  renderDaySelector();
+  renderWorkout();
+  renderMeals();
+
+  const input = document.getElementById("chat-input");
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 100) + "px";
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach((b,i) => {
+    b.classList.toggle("active", ["chat","workout","meals"][i] === tab);
+  });
+  document.getElementById("tab-chat").classList.toggle("hidden", tab !== "chat");
+  document.getElementById("tab-workout").classList.toggle("hidden", tab !== "workout");
+  document.getElementById("tab-meals").classList.toggle("hidden", tab !== "meals");
+  document.getElementById("day-selector-bar").classList.toggle("hidden", tab === "chat");
+
+  if (tab === "chat") scrollToBottom();
+}
+
+function renderDaySelector() {
+  const bar = document.getElementById("day-selector-bar");
+  bar.innerHTML = DAYS.map(d => `
+    <button class="day-pill${selectedDay===d?" active":""}${d===TODAY?" today":""}" onclick="selectDay('${d}')">
+      ${d}${d===TODAY?" *":""}
+    </button>`).join("");
+}
+
+function selectDay(day) {
+  selectedDay = day;
+  renderDaySelector();
+  renderWorkout();
+  renderMeals();
+}
+
+function renderWorkout() {
+  const w = WORKOUTS.find(x => x.day === selectedDay);
+  document.getElementById("tab-workout").innerHTML = `
+    <div class="section-header">
+      <div class="section-emoji">${w.emoji}</div>
+      <div>
+        <div class="section-title">${w.title}</div>
+        <div class="section-sub">${w.focus}</div>
+      </div>
     </div>
-    <ul id="todo-list"></ul>
+    ${w.exercises.map((ex,i) => `
+      <div class="exercise-card">
+        <div class="ex-num">${String(i+1).padStart(2,"0")}</div>
+        <div>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-sets">${ex.sets}</div>
+          <div class="ex-note">${ex.note}</div>
+        </div>
+      </div>`).join("")}`;
+}
 
-    <script>
-        const todoInput = document.getElementById('todo-input');
-        const addBtn = document.getElementById('add-btn');
-        const todoList = document.getElementById('todo-list');
+function renderMeals() {
+  const m = MEALS.find(x => x.day === selectedDay);
+  document.getElementById("tab-meals").innerHTML = `
+    <div class="section-header">
+      <div class="section-emoji">${m.emoji}</div>
+      <div>
+        <div class="section-title">${m.label} Menu</div>
+        <div class="section-sub">Clean · Gains-Approved</div>
+      </div>
+    </div>
+    ${m.meals.map(meal => `
+      <div class="meal-card">
+        <div class="meal-type">${meal.type}</div>
+        <div class="meal-name">${meal.name}</div>
+        <div class="meal-desc">${meal.desc}</div>
+        <div class="meal-cal">${meal.cal}</div>
+      </div>`).join("")}`;
+}
 
-        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+function renderMessages() {
+  const container = document.getElementById("messages");
+  container.innerHTML = messages.map(msg => `
+    <div class="message-row${msg.role==="user"?" user":""}">
+      <div class="msg-avatar ${msg.role==="assistant"?"coach":"user-av"}">${msg.role==="assistant"?"🏋️":"🧍"}</div>
+      <div class="bubble ${msg.role==="assistant"?"coach":"user"}">${escapeHtml(msg.content)}</div>
+    </div>`).join("");
 
-        const renderTodos = () => {
-            todoList.innerHTML = '';
-            todos.forEach((todo, index) => {
-                const li = document.createElement('li');
-                li.textContent = todo;
-                const removeBtn = document.createElement('span');
-                removeBtn.textContent = 'Remove';
-                removeBtn.className = 'remove';
-                removeBtn.onclick = () => {
-                    todos.splice(index, 1);
-                    localStorage.setItem('todos', JSON.stringify(todos));
-                    renderTodos();
-                };
-                li.appendChild(removeBtn);
-                todoList.appendChild(li);
-            });
-        };
+  if (loading) {
+    container.innerHTML += `
+      <div class="message-row">
+        <div class="msg-avatar coach">🏋️</div>
+        <div class="bubble coach">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>`;
+  }
+  scrollToBottom();
+}
 
-        addBtn.onclick = () => {
-            const newTodo = todoInput.value.trim();
-            if (newTodo) {
-                todos.push(newTodo);
-                localStorage.setItem('todos', JSON.stringify(todos));
-                todoInput.value = '';
-                renderTodos();
-            }
-        };
+function scrollToBottom() {
+  const c = document.getElementById("messages");
+  c.scrollTop = c.scrollHeight;
+}
 
-        renderTodos();
-    </script>
+function escapeHtml(text) {
+  return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+async function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text || loading) return;
+
+  messages.push({role:"user", content: text});
+  input.value = "";
+  input.style.height = "auto";
+  loading = true;
+  document.getElementById("send-btn").disabled = true;
+  renderMessages();
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: messages.map(m => ({role:m.role, content:m.content}))
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "Coach Ironjaw lost signal. Try again!";
+    messages.push({role:"assistant", content: reply});
+  } catch {
+    messages.push({role:"assistant", content:"Coach got cut off. Check your connection and try again!"});
+  }
+
+  loading = false;
+  document.getElementById("send-btn").disabled = false;
+  renderMessages();
+  document.getElementById("chat-input").focus();
+}
+
+init();
+</script>
 </body>
 </html>
